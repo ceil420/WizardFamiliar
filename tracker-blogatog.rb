@@ -25,16 +25,24 @@ Thread.new {
     open(blogatog["url"]) do |rss|
       puts "#{Time.now.strftime("%F %T")} > 2. Inside RSS loop."
       feed = RSS::Parser.parse(rss)
+
       feed.items.each do |item|
         puts "#{Time.now.strftime("%F %T")} > 3. Inside RSS item #{item.link.to_s}."
         thispost = item.link.gsub(/.*\/\/.*\/.*\//, '').to_i
         puts "#{Time.now.strftime("%F %T")} > 4. Processing #{thispost}."
+
         if thispost > newlast
           puts "#{Time.now.strftime("%F %T")} > 5. Marking new post."
           newlast = thispost
         end
+
         if thispost > lastpost
           puts "#{Time.now.strftime("%F %T")} > 6. Posting new post."
+          puts "#{Time.now.strftime("%F %T")} >>>> #{item.title.to_s}"
+          puts "#{Time.now.strftime("%F %T")} >>>> #{item.link.to_s}"
+          puts "#{Time.now.strftime("%F %T")} >>>> #{item.description.to_s}"
+          puts "#{Time.now.strftime("%F %T")} >>>> #{item.pubDate.to_s}"
+
           begin
             bot.channel(chan).send_embed("New **Blogatog** post!") do |embed|
               embed.title = "Blogatog"
@@ -42,24 +50,30 @@ Thread.new {
               embed.colour = 0x687FC7
               embed.url = item.link.to_s
               embed.thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url:"https://66.media.tumblr.com/avatar_7c8d4585b098_64.pnj")
-              embed.add_field(name: item.title.to_s, value: "#{item.description.gsub!(/<("[^"]*"|'[^']*'|[^'">])*/, '')}")
+              embed.add_field(name: item.title.to_s, value: "#{item.description.gsub!(/<("[^"]*"|'[^']*'|[^'">])*>/, '')}")
             end
             puts "#{Time.now.strftime("%F %T")} > 7. Post posted."
-          rescue
-            bot.send_message(chan, "New **Blogatog** post at <#{item.link.to_s}>\n**#{item.title.to_s}**\n#{item.description.gsub!(/<("[^"]*"|'[^']*'|[^'">])*/, '')}")
+          rescue StandardError => err
+            bot.send_message(chan, "New **Blogatog** post at <#{item.link.to_s}>\n**#{item.title.to_s}**\n#{item.description.gsub!(/<("[^"]*"|'[^']*'|[^'">])*>/, '')}")
             puts "#{Time.now.strftime("%F %T")} > 7. Post failed."
+            puts "#{Time.now.strftime("%F %T")} >>>> err.message"
+            puts "#{Time.now.strftime("%F %T")} >>>> err.backtrace.inspect"
           end
+
         else
           puts "#{Time.now.strftime("%F %T")} > 8. No more new posts, breaking out."
           break
         end
+
         puts "#{Time.now.strftime("%F %T")} > 9. Sleeping five..."
         sleep 5
       end
+
       puts "#{Time.now.strftime("%F %T")} > 10. Saving lastpost #{newlast} to file."
       blogatog["lastpost"] = lastpost = newlast
       File.open("blogatog.json", "w") { |f| f.puts JSON.generate(blogatog) }
     end
+
     puts "#{Time.now.strftime("%F %T")} > 11. Sleeping for ten minutes."
     sleep 600
   end
