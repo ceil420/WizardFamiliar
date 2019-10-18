@@ -56,8 +56,8 @@ Thread.new {
           rescue StandardError => err
             bot.send_message(chan, "New **Blogatog** post at <#{item.link.to_s}>\n**#{item.title.to_s}**\n#{item.description.gsub!(/<("[^"]*"|'[^']*'|[^'">])*>/, '')}")
             puts "#{Time.now.strftime("%F %T")} > 7. Post failed."
-            puts "#{Time.now.strftime("%F %T")} >>>> err.message"
-            puts "#{Time.now.strftime("%F %T")} >>>> err.backtrace.inspect"
+            puts "#{Time.now.strftime("%F %T")} >>>> #{err.message}"
+            puts "#{Time.now.strftime("%F %T")} >>>> #{err.backtrace.inspect}"
           end
 
         else
