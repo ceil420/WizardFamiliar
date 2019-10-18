@@ -1,0 +1,3 @@
+# Configuration files that contain sensitive keys
+keygen.rb
+keys.json
